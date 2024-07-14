@@ -1,0 +1,93 @@
+from m5stack import *
+from m5ui import *
+from uiflow import *
+from flow import ezdata
+import wifiCfg
+import time
+import unit
+
+
+setScreenColor(0x222222)
+sonic_io_0 = unit.get(unit.SONIC_IO, unit.PORTB)
+rgb_1 = unit.get(unit.RGB, unit.PORTC)
+
+
+data = None
+
+wifiCfg.autoConnect(lcdShow=False)
+
+label0 = M5TextBox(24, 185, "label0", lcd.FONT_DejaVu18, 0xFFFFFF, rotate=0)
+bxempty = M5Img(67, 11, "res/boxEmpty.jpg", True)
+boxfull = M5Img(81, 15, "res/boxFull.jpg", True)
+label1 = M5TextBox(24, 214, "label1", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+
+
+# Describe this function...
+def saveDataToEZData():
+  global data
+  ezdata.setData('t8yC73uYhc3ae9MnYRCKw2lMZkIuNurF', 'IoTProject', data)
+  wait(2)
+  savedToSSD()
+
+# Describe this function...
+def savedToSSD():
+  global data
+  with open('/sd/test.txt', 'w+') as fs:
+    fs.write(str(data))
+
+
+def buttonA_wasPressed():
+  global data
+  rgb.setColorAll(0x006600)
+  bxempty.hide()
+  boxfull.show()
+  label0.setText('Paper Pushed')
+  label1.setText(str(ezdata.getCurrentISODateTime()))
+  rgb_1.setColorAll(0x006600)
+  speaker.tone(20, 50)
+  speaker.setVolume(10)
+  data = 'Paper Pushed'
+  saveDataToEZData()
+  pass
+btnA.wasPressed(buttonA_wasPressed)
+
+def buttonB_wasPressed():
+  global data
+  rgb.setColorAll(0xff0000)
+  bxempty.hide()
+  boxfull.show()
+  label0.setText('Paper Popuped')
+  label1.setText(str(ezdata.getCurrentISODateTime()))
+  rgb_1.setColorAll(0xff0000)
+  speaker.tone(20, 50)
+  speaker.setVolume(10)
+  data = 'Paper Popuped'
+  saveDataToEZData()
+  pass
+btnB.wasPressed(buttonB_wasPressed)
+
+
+while True:
+  if (sonic_io_0.get_distance(1)) < 100:
+    rgb.setColorAll(0x006600)
+    bxempty.hide()
+    boxfull.show()
+    label0.setText('Paper Pushed')
+    label1.setText(str(ezdata.getCurrentISODateTime()))
+    rgb_1.setColorAll(0x006600)
+    speaker.tone(20, 50)
+    speaker.setVolume(10)
+    data = 'Paper Pushed'
+    saveDataToEZData()
+  else:
+    rgb.setColorAll(0xff0000)
+    boxfull.hide()
+    bxempty.show()
+    label0.setText('Paper Popuped')
+    label1.setText(str(ezdata.getCurrentISODateTime()))
+    rgb_1.setColorAll(0xff0000)
+    speaker.tone(20, 50)
+    speaker.setVolume(10)
+    data = 'Paper Popuped'
+    saveDataToEZData()
+  wait_ms(2)
